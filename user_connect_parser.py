@@ -1,18 +1,19 @@
 import pandas as pd
 import os
 import re
-from datetime import datetime
+from datetime import datetime as dttm
+from config import *
 
 
-def obj_spaw_parser(log_name: str) -> dict:
+def obj_spaw_parser(path: str, log_name: str) -> dict:
     """
     Функция парсит лог ObjectSpawner
 
+    :param path: Путь до лога
     :param log_name: Название лога, который будет парситься
     :return: Словарь с последними авторизациями пользователей {user:last_connect}
     """
-
-    with open(log_name, 'r') as obj_spaw_log:
+    with open(path + log_name, 'r') as obj_spaw_log:
 
         connections = {}
         rows = obj_spaw_log.readlines()
@@ -21,7 +22,7 @@ def obj_spaw_parser(log_name: str) -> dict:
             if re.search(" - New client connection", row):
                 user = row.split()[3][1:]
                 user = user.lower().split('@')[0]
-                time = datetime.strptime(row.split()[0], '%Y-%m-%dT%H:%M:%S,%f')
+                time = dttm.strptime(row.split()[0], '%Y-%m-%dT%H:%M:%S,%f')
                 if user in connections:
                     if connections[user] < time:
                         connections[user] = time
@@ -33,7 +34,7 @@ def obj_spaw_parser(log_name: str) -> dict:
 
 def dict_to_dataframe(dict_users: dict) -> pd.DataFrame:
     """
-    Функция преобразует словрь в DataFrame Pandas
+    Функция преобразует словарь в DataFrame Pandas
 
     :param dict_users: Преобразовываемый словарь
     :return: DataFrame
@@ -41,21 +42,31 @@ def dict_to_dataframe(dict_users: dict) -> pd.DataFrame:
     return pd.DataFrame([[k, v] for k, v in dict_users.items()], columns=['Users', 'Last connect time'])
 
 
-def dataframe_to_csv(df: pd.DataFrame, file_name: str, prefix='') -> None:
+def dataframe_to_csv(df: pd.DataFrame, file_name: str, tmp=False) -> None:
     """
     Функция выгрузки DataFrame в *.csv
 
-    :param file_name:
+    :param file_name: Название выходного файла
     :param df: DataFrame
-    :param prefix: Префикс создаваемого файла
+    :param tmp: Флаг промежуточного файла
     """
-    if prefix != '':
-        file_name = f'{datetime.strftime(datetime.now(), f"{prefix}%y_%m_%d__%H_%M.csv")}'
-    df.to_csv(file_name, header=True, index=False, sep=';', encoding='utf-8', date_format='%Y-%m-%d %H:%M:%S')
+    if tmp:
+        result_name = f'intermediate_csv/{file_name}{dttm.strftime(dttm.now(), "%y_%m_%d__%H_%M")}.csv'
+    else:
+        result_name = file_name
+    df.to_csv(result_name, header=True, index=False, sep=';',
+              encoding='utf-8', date_format='%Y-%m-%d %H:%M:%S')
 
 
-def list_files_csv(prefix: str) -> list:
-    files = os.listdir()
+def list_files_csv(path: str, prefix: str) -> list:
+    """
+    Функция выводит список csv-файлов, в указанной директории
+
+    :param path: Путь до файлов
+    :param prefix: Префикс файлов
+    :return: Список путей до файлов
+    """
+    files = os.listdir(INTERMEDIATE_PATH)
     files_csv = []
     for file in files:
         if prefix == file[:13] and file[-3:] == 'csv':
@@ -64,17 +75,35 @@ def list_files_csv(prefix: str) -> list:
 
 
 def join_dataframes(files: list[str]) -> pd.DataFrame:
-    return pd.concat([pd.read_csv(file, sep=';') for file in files], ignore_index=True)
+    """
+    Функция объединения нескольких csv-файлов в один DataFrame
+
+    :param files: Список путей до csv-файлов
+    :return: DataFrame с объединёнными данными
+    """
+    return pd.concat([pd.read_csv(f'{INTERMEDIATE_PATH}{file}', sep=';') for file in files], ignore_index=True)
 
 
 def uniq_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Функция удаляет дубли данных, оставляя самые свежие данные
+
+    :param df: DataFrame с дублирующимися строками
+    :return: DataFrame с уникальными строками
+    """
     return df.drop_duplicates(subset='Users', keep='last')
 
 
 if __name__ == '__main__':
-    pref = 'user_parser__'
-    log_data = obj_spaw_parser('ObjectSpawner.txt')
-    data = dict_to_dataframe(log_data)
-    dataframe_to_csv(df=data, file_name='', prefix=pref)
-    data = uniq_data(join_dataframes(list_files_csv(pref)))
-    dataframe_to_csv(df=data, file_name='result.csv')
+    # Собираем данные с лога
+    log_data = obj_spaw_parser(path=LOG_PATH, log_name=LOG_NAME)
+    data = dict_to_dataframe(dict_users=log_data)
+
+    # Выгружаем промежуточные csv-файлы
+    dataframe_to_csv(df=data, file_name=CSV_PREFIX, tmp=True)
+
+    # Унифицируем данные
+    data = uniq_data(df=join_dataframes(files=list_files_csv(path='', prefix=CSV_PREFIX)))
+
+    # Выгружаем итоговый csv-файл
+    dataframe_to_csv(df=data, file_name=CSV_NAME)
