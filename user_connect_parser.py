@@ -5,6 +5,21 @@ from datetime import datetime as dttm
 from config import *
 
 
+def find_need_log(path: str, pattern: str) -> str:
+    """
+    Функция поиска нужного лог-файла
+
+    :param path: Путь до файла
+    :param pattern: Шаблон названия файла
+    :return: Название файла
+    """
+    files = os.listdir(LOG_PATH)
+    pattern = dttm.strftime(dttm.now(), pattern)
+    for file in files:
+        if re.search(pattern, file):
+            print(file)
+
+
 def obj_spaw_parser(path: str, log_name: str) -> dict:
     """
     Функция парсит лог ObjectSpawner
@@ -95,8 +110,11 @@ def uniq_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
+    # Ищем нужный файл
+    file_name = find_need_log(path=LOG_PATH, pattern=LOG_NAME_PATTERN)
+
     # Собираем данные с лога
-    log_data = obj_spaw_parser(path=LOG_PATH, log_name=LOG_NAME)
+    log_data = obj_spaw_parser(path=LOG_PATH, log_name=file_name)
     data = dict_to_dataframe(dict_users=log_data)
 
     # Выгружаем промежуточные csv-файлы
