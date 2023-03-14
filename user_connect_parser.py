@@ -5,7 +5,7 @@ from datetime import datetime as dttm
 from config import *
 
 
-def find_need_log(path: str, pattern: str) -> str:
+def find_need_log(path, pattern) -> str:
     """
     Функция поиска нужного лог-файла
 
@@ -13,14 +13,14 @@ def find_need_log(path: str, pattern: str) -> str:
     :param pattern: Шаблон названия файла
     :return: Название файла
     """
-    files = os.listdir(LOG_PATH)
+    files = os.listdir(path)
     pattern = dttm.strftime(dttm.now(), pattern)
     for file in files:
         if re.search(pattern, file):
-            print(file)
+            return file
 
 
-def obj_spaw_parser(path: str, log_name: str) -> dict:
+def obj_spaw_parser(path, log_name) -> dict:
     """
     Функция парсит лог ObjectSpawner
 
@@ -28,7 +28,7 @@ def obj_spaw_parser(path: str, log_name: str) -> dict:
     :param log_name: Название лога, который будет парситься
     :return: Словарь с последними авторизациями пользователей {user:last_connect}
     """
-    with open(path + log_name, 'r') as obj_spaw_log:
+    with open(str(path) + str(log_name), 'r') as obj_spaw_log:
 
         connections = {}
         rows = obj_spaw_log.readlines()
@@ -47,7 +47,7 @@ def obj_spaw_parser(path: str, log_name: str) -> dict:
     return connections
 
 
-def dict_to_dataframe(dict_users: dict) -> pd.DataFrame:
+def dict_to_dataframe(dict_users) -> pd.DataFrame:
     """
     Функция преобразует словарь в DataFrame Pandas
 
@@ -57,7 +57,7 @@ def dict_to_dataframe(dict_users: dict) -> pd.DataFrame:
     return pd.DataFrame([[k, v] for k, v in dict_users.items()], columns=['Users', 'Last connect time'])
 
 
-def dataframe_to_csv(df: pd.DataFrame, file_name: str, tmp=False) -> None:
+def dataframe_to_csv(df, file_name, tmp=False) -> None:
     """
     Функция выгрузки DataFrame в *.csv
 
@@ -73,7 +73,7 @@ def dataframe_to_csv(df: pd.DataFrame, file_name: str, tmp=False) -> None:
               encoding='utf-8', date_format='%Y-%m-%d %H:%M:%S')
 
 
-def list_files_csv(path: str, prefix: str) -> list:
+def list_files_csv(path, prefix) -> list:
     """
     Функция выводит список csv-файлов, в указанной директории
 
@@ -81,7 +81,7 @@ def list_files_csv(path: str, prefix: str) -> list:
     :param prefix: Префикс файлов
     :return: Список путей до файлов
     """
-    files = os.listdir(INTERMEDIATE_PATH)
+    files = os.listdir(path)
     files_csv = []
     for file in files:
         if prefix == file[:13] and file[-3:] == 'csv':
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     dataframe_to_csv(df=data, file_name=CSV_PREFIX, tmp=True)
 
     # Унифицируем данные
-    data = uniq_data(df=join_dataframes(files=list_files_csv(path='', prefix=CSV_PREFIX)))
+    data = uniq_data(df=join_dataframes(files=list_files_csv(path=INTERMEDIATE_PATH, prefix=CSV_PREFIX)))
 
     # Выгружаем итоговый csv-файл
     dataframe_to_csv(df=data, file_name=CSV_NAME)
