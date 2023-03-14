@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import pandas as pd
 import os
 import re
@@ -5,7 +8,7 @@ from datetime import datetime as dttm
 from config import *
 
 
-def find_need_log(path, pattern) -> str:
+def find_need_log(path, pattern):
     """
     Функция поиска нужного лог-файла
 
