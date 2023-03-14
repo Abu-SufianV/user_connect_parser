@@ -20,7 +20,7 @@ def find_need_log(path, pattern) -> str:
             return file
 
 
-def obj_spaw_parser(path, log_name) -> dict:
+def obj_spaw_parser(path, log_name):
     """
     Функция парсит лог ObjectSpawner
 
@@ -47,7 +47,7 @@ def obj_spaw_parser(path, log_name) -> dict:
     return connections
 
 
-def dict_to_dataframe(dict_users) -> pd.DataFrame:
+def dict_to_dataframe(dict_users):
     """
     Функция преобразует словарь в DataFrame Pandas
 
@@ -57,7 +57,7 @@ def dict_to_dataframe(dict_users) -> pd.DataFrame:
     return pd.DataFrame([[k, v] for k, v in dict_users.items()], columns=['Users', 'Last connect time'])
 
 
-def dataframe_to_csv(df, file_name, tmp=False) -> None:
+def dataframe_to_csv(df, file_name, tmp=False):
     """
     Функция выгрузки DataFrame в *.csv
 
@@ -73,7 +73,7 @@ def dataframe_to_csv(df, file_name, tmp=False) -> None:
               encoding='utf-8', date_format='%Y-%m-%d %H:%M:%S')
 
 
-def list_files_csv(path, prefix) -> list:
+def list_files_csv(path, prefix):
     """
     Функция выводит список csv-файлов, в указанной директории
 
@@ -89,7 +89,7 @@ def list_files_csv(path, prefix) -> list:
     return files_csv
 
 
-def join_dataframes(files: list[str]) -> pd.DataFrame:
+def join_dataframes(files: list[str]):
     """
     Функция объединения нескольких csv-файлов в один DataFrame
 
@@ -99,7 +99,7 @@ def join_dataframes(files: list[str]) -> pd.DataFrame:
     return pd.concat([pd.read_csv(f'{INTERMEDIATE_PATH}{file}', sep=';') for file in files], ignore_index=True)
 
 
-def uniq_data(df: pd.DataFrame) -> pd.DataFrame:
+def uniq_data(df: pd.DataFrame):
     """
     Функция удаляет дубли данных, оставляя самые свежие данные
 
