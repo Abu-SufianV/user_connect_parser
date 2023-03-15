@@ -114,49 +114,52 @@ def uniq_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    logging.info("Процесс анализа ObjectSpawner — запущен")
     try:
-        logging.info("Поиск нужного файла")
-        obj_spw_log = find_need_log(path=LOG_PATH, pattern=LOG_NAME_PATTERN)
-        logging.info(f"Файл: {obj_spw_log}")
+        logging.info("Процесс анализа ObjectSpawner — запущен")
+        try:
+            logging.info("Поиск нужного файла")
+            obj_spw_log = find_need_log(path=LOG_PATH, pattern=LOG_NAME_PATTERN)
+            logging.info(f"Файл: {obj_spw_log}")
+        except Exception as er:
+            logging.error(f"Ошибка при поиске нужного файла: {er}")
+            raise f"Проблема в функции find_need_log()"
+
+        try:
+            logging.info("Собираем данные с ObjectSpawner")
+            log_data = obj_spaw_parser(path=LOG_PATH, log_name=obj_spw_log)
+            data = dict_to_dataframe(dict_users=log_data)
+            logging.info(f"Полученные данные: \n{data}")
+        except Exception as er:
+            logging.error(f"Ошибка при сборе данных: {er}")
+            raise f"Проблема в функциях 'obj_spaw_parser()', 'dict_to_dataframe'"
+        try:
+
+            logging.info("Выгружаем промежуточный csv-файл")
+            tmp_file = dataframe_to_csv(df=data, file_name=CSV_PREFIX, tmp=True)
+            logging.info(f"Данные выгружены корректно в файл '{tmp_file}'")
+        except Exception as er:
+            logging.error(f"Ошибка при выгрузке в файл: {er}")
+            raise f"Проблема в функции 'dataframe_to_csv()'"
+
+        try:
+            logging.info("Унифицируем данные из всех csv-файлов")
+            data = uniq_data(df=join_dataframes(files=list_files_csv(path=INTERMEDIATE_PATH, prefix=CSV_PREFIX)))
+            logging.info("Данные уникальны")
+        except Exception as er:
+            logging.error(f"Ошибка при унификации данных: {er}")
+            raise f"Проблема в функциях 'uniq_data()', 'join_dataframes()', 'list_files_csv()',"
+
+        # Выгружаем итоговый csv-файл
+        try:
+            logging.info(f"Выгружаем {CSV_NAME}")
+            dataframe_to_csv(df=data, file_name=CSV_NAME)
+            logging.info(f"Файл {CSV_NAME} выгружен успешно")
+        except Exception as er:
+            logging.error(f"Ошибка при выгрузке {CSV_NAME}: {er}")
+            raise f"Проблема в функции 'dataframe_to_csv()'"
+
+        logging.info("Процесс анализа ObjectSpawner окончен без ошибок!")
     except Exception as er:
-        logging.error(f"Ошибка при поиске нужного файла: {er}")
-        raise "Ошибка при поиске нужного файла"
+        logging.error(f"Процесс анализа окончен с ошибками: {er}")
 
 
-    try:
-        logging.info("Собираем данные с ObjectSpawner")
-        log_data = obj_spaw_parser(path=LOG_PATH, log_name=obj_spw_log)
-        data = dict_to_dataframe(dict_users=log_data)
-        logging.info(f"Полученные данные: \n{data}")
-    except Exception as er:
-        logging.error(f"Ошибка при сборе данных: {er}")
-        raise f"Ошибка при сборе данных: {er}"
-    try:
-
-        logging.info("Выгружаем промежуточный csv-файл")
-        tmp_file = dataframe_to_csv(df=data, file_name=CSV_PREFIX, tmp=True)
-        logging.info(f"Данные выгружены корректно в файл '{tmp_file}'")
-    except Exception as er:
-        logging.error(f"Ошибка при выгрузке в файл: {er}")
-        raise f"Ошибка при выгрузке в файл: {er}"
-
-    try:
-        logging.info("Унифицируем данные из всех csv-файлов")
-        data = uniq_data(df=join_dataframes(files=list_files_csv(path=INTERMEDIATE_PATH, prefix=CSV_PREFIX)))
-        logging.info("Данные уникальны")
-    except Exception as er:
-        logging.error(f"Ошибка при унификации данных: {er}")
-        raise f"Ошибка при унификации данных: {er}"
-
-
-    # Выгружаем итоговый csv-файл
-    try:
-        logging.info(f"Выгружаем {CSV_NAME}")
-        dataframe_to_csv(df=data, file_name=CSV_NAME)
-        logging.info(f"Файл {CSV_NAME} выгружен успешно")
-    except Exception as er:
-        logging.error(f"Ошибка при выгрузке {CSV_NAME}: {er}")
-        raise f"Ошибка при выгрузке {CSV_NAME}: {er}"
-
-    logging.info("Процесс анализа ObjectSpawner — окончен")
