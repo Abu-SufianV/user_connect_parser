@@ -5,7 +5,8 @@ from datetime import datetime
 log_filename = f"./logs/{datetime.date(datetime.now())}.log".replace("-", "_")
 log_format = "%(asctime)s [%(levelname)s]: %(message)s"
 log_level = logging.INFO
-logging.basicConfig(level=log_level, filename=log_filename, format=log_format)
+log_encoding = "UTF-8"
+logging.basicConfig(level=log_level, filename=log_filename, format=log_format, encoding=log_encoding)
 
 # Путь до лога и название
 LOG_PATH         = "./"

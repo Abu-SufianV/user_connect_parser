@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import re
-import logging
 from datetime import datetime as dttm
 from config import *
 
