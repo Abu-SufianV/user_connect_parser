@@ -159,7 +159,9 @@ if __name__ == '__main__':
             raise f"Проблема в функции 'dataframe_to_csv()'"
 
         logging.info("Процесс анализа ObjectSpawner окончен без ошибок!")
+        logging.info("-------------------------------------------------")
     except Exception as er:
         logging.error(f"Процесс анализа окончен с ошибками: {er}")
+        logging.info("------------------------------------------")
 
 
