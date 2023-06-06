@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime
 
-log_filename = f"./logs/{datetime.date(datetime.now())}.log".replace("-", "_")
+log_filename = "./logs/{}.log".format(datetime.now().date()).replace("-", "_")
 log_format = "%(asctime)s [%(levelname)s]: %(message)s"
 log_level = logging.INFO
 log_encoding = "UTF-8"
